@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import os 
 
+# what to put for the parameters
 #1) name of the college
 #2) url including the grid view
 #3) tag of the box of the player data
@@ -46,8 +47,15 @@ def webscraper(college, url, box_tag, box_class, player_tag, player_name, player
     df[['City', 'State']] = df['Hometown/High School'].str.extract(r'([A-Za-z\s]+),\s([A-Za-z.]+)')
     df.drop(columns=['Hometown/High School'], inplace=True)
 
-    folder_name = f'{year}_csv_files'
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-    df.to_csv(os.path.join(folder_name, f'{college}_{year}.csv'), index=False)
+    csv_folder = "csv_files"
+    year_folder = f'{year}'
+
+    if not os.path.exists(csv_folder):
+        os.makedirs(csv_folder)
+
+    year_path = os.path.join(csv_folder, year_folder)
+    if not os.path.exists(year_path):
+        os.makedirs(year_path)
+
+    df.to_csv(os.path.join(year_path, f'{college}_{year}.csv'), index=False)
     print(f'{college} csv uploaded!')
