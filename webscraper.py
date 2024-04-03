@@ -1,8 +1,19 @@
 from bs4 import BeautifulSoup
 import requests 
 import pandas as pd
+import os 
 
-def webscraper(college, url, box_tag, box_class, player_tag, player_name, player_year,player_hometown):
+#1) name of the college
+#2) url including the grid view
+#3) tag of the box of the player data
+#4) class of the box of the player data
+#5) player specifier tag
+#6) class of the player name
+#7) class of the player year
+#8) class of the player hometown
+#9) year roster (ex: 23_24)
+
+def webscraper(college, url, box_tag, box_class, player_tag, player_name, player_year,player_hometown,year):
     roster = url
     result = requests.get(roster)
     content = result.text
@@ -29,24 +40,14 @@ def webscraper(college, url, box_tag, box_class, player_tag, player_name, player
                 'Academic Year': academic_year,
                 'Hometown/High School': hometown_highschool
             })
-        else:
-            print("Some player information is missing for this entry.")
 
     df = pd.DataFrame(player_data)
 
     df[['City', 'State']] = df['Hometown/High School'].str.extract(r'([A-Za-z\s]+),\s([A-Za-z.]+)')
     df.drop(columns=['Hometown/High School'], inplace=True)
 
-    df.to_csv(f'{college}.csv', index=False)
-
-#1) name of the college
-#2) url including the grid view
-#3) tag of the box of the player data
-#4) class of the box of the player data
-#5) player specifier tag
-#5) class of the player name
-#6) class of the player year
-#7) class of the player hometown
-webscraper('illinois','https://fightingillini.com/sports/mens-basketball/roster/2023-24?view=2',
-           'table', "sidearm-table sidearm-table-grid-template-1 sidearm-table-grid-template-1-breakdown-large",
-           'tr', 'sidearm-table-player-name','roster_class','hometownhighschool')
+    folder_name = f'{year}_csv_files'
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    df.to_csv(os.path.join(folder_name, f'{college}_{year}.csv'), index=False)
+    print(f'{college} csv uploaded!')
