@@ -1,7 +1,7 @@
 .vscode/
 
 __pycache__/
-.pyc
+*.pyc
 
 /csv_files/
-.csv
+*.csv
