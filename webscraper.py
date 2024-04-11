@@ -3,52 +3,42 @@ import requests
 import pandas as pd
 import os 
 
-# what to put for the parameters
-#1) name of the college
-#2) url including the grid view
-#3) tag of the box of the player data
-#4) class of the box of the player data
-#5) player specifier tag
-#6) class of the player name
-#7) class of the player year
-#8) class of the player hometown
-#9) year roster (ex: 23_24)
-
-def webscraper(college, url, box_tag, box_class, player_tag, player_name, player_year,player_hometown,year):
-    roster = url
+def webscraper(school, year):
+    roster = f"https://www.sports-reference.com/cbb/schools/{school}/men/{year}.html#all_roster"
     result = requests.get(roster)
     content = result.text
+    year_abr2 = year%2000 
+    year_abr = year_abr2 -1
+    year_str = str(year_abr) + "_" + str(year_abr2)
 
     soup = BeautifulSoup(content, 'lxml')
+    table = soup.find('table', class_= 'sortable stats_table')
 
-    box = soup.find(box_tag, class_=box_class)
+    players_list = []
 
-    players = box.find_all(player_tag)
+    # Iterate over each table row
+    for row in table.find_all('tr')[1:]:  # Skip the first row (header row)
+        columns1 = row.find_all('th')
+        columns2 = row.find_all('td')
 
-    player_data = []
-    for player in players:
-        name = player.find(class_=player_name)
-        academic_year_element = player.find(class_=player_year)
-        hometown_highschool_element = player.find(class_=player_hometown)
+        player = columns1[0].text.strip()  # Player's name
+        hometown = columns2[5].text.strip()  # Player's hometown
+        high_school = columns2[6].text.strip()  # Player's high school
         
-        if name and academic_year_element and hometown_highschool_element:
-            name = name.text.strip()
-            academic_year = academic_year_element.text.strip()
-            hometown_highschool = hometown_highschool_element.text.strip()
-            
-            player_data.append({
-                'Name': name,
-                'Academic Year': academic_year,
-                'Hometown/High School': hometown_highschool
-            })
+        players_list.append({
+            'Player': player,
+            'Hometown': hometown,
+            'High School': high_school
+        })
 
-    df = pd.DataFrame(player_data)
+    df = pd.DataFrame(players_list)
 
-    df[['City', 'State']] = df['Hometown/High School'].str.extract(r'([A-Za-z\s]+),\s([A-Za-z.]+)')
-    df.drop(columns=['Hometown/High School'], inplace=True)
+    df[['City', 'State']] = df['Hometown'].str.extract(r'([A-Za-z\s]+),\s([A-Za-z.]+)')
+    df.drop(columns=['Hometown'], inplace=True)
 
+    df['High School'] = df['High School'].str.split(';').str[-1].str.strip()
     csv_folder = "csv_files"
-    year_folder = f'{year}'
+    year_folder = year_str
 
     if not os.path.exists(csv_folder):
         os.makedirs(csv_folder)
@@ -57,5 +47,6 @@ def webscraper(college, url, box_tag, box_class, player_tag, player_name, player
     if not os.path.exists(year_path):
         os.makedirs(year_path)
 
-    df.to_csv(os.path.join(year_path, f'{college}_{year}.csv'), index=False)
-    print(f'{college} csv uploaded!')
+    df.to_csv(os.path.join(year_path, f'{school}_{year_str}.csv'), index=False)
+    print(f'{school} csv uploaded!')
+    return df
