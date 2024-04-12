@@ -1,10 +1,12 @@
+import time
 from bs4 import BeautifulSoup
 import requests 
 import pandas as pd
 import os 
 
 def webscraper(school, year):
-    roster = f"https://www.sports-reference.com/cbb/schools/{school}/men/{year}.html#all_roster"
+    
+    roster = "https://www.sports-reference.com/cbb/schools/{school}/men/{year}.html#all_roster"
     result = requests.get(roster)
     content = result.text
     year_abr2 = year%2000 
@@ -49,4 +51,5 @@ def webscraper(school, year):
 
     df.to_csv(os.path.join(year_path, f'{school}_{year_str}.csv'), index=False)
     print(f'{school} csv uploaded!')
+    time.sleep(5)
     return df
