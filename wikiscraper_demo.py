@@ -58,10 +58,11 @@ def wikiscraper(team_name, year_int):
     return player_data
 
 # Take a team
-teams = {"TBD"}
+teams = {"UAB Blazers"}
 team_data = []
 for team in teams:
-    for year in range (2024,2014,-1):
+    # for the sake of testing, we will just take data for 3 years
+    for year in range (2024,2020,-1):
         # wikiscraper(team,year)
         team_data.extend(wikiscraper(team, year))
 
